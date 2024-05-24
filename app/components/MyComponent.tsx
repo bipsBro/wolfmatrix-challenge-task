@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   Text,
   View,
@@ -7,28 +7,38 @@ import {
   TextInput,
 } from "react-native";
 
-const MyComponent = ({ data }) => {
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [dataSource, setDataSource] = useState([]);
+type DataType = {
+  id: string;
+  name: string;
+};
+type MyComponentProps = {
+  data: DataType[];
+};
+
+const MyComponent = ({ data }: MyComponentProps) => {
+  const [selectedItems, setSelectedItems] = useState<DataType[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const inputRef = useRef(null);
+  const inputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    setDataSource(data);
-  }, [data]);
+  const filteredData = data.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  useEffect(() => {
-    setTimeout(() => {
-      setDataSource(data.filter((item) => item.name.includes(searchTerm)));
-    }, 1000);
-  }, [searchTerm]);
-
-  const handleSelect = (item) => {
-    setSelectedItems((currentSelectedItems) => [...currentSelectedItems, item]);
+  const handleSelect = (item: DataType) => {
+    const filteredItems = selectedItems.filter((v) => v.id != item.id);
+    if (filteredItems.length == selectedItems.length) {
+      setSelectedItems((currentSelectedItems) => [
+        ...currentSelectedItems,
+        item,
+      ]);
+    } else {
+      setSelectedItems(filteredItems);
+    }
   };
 
   const handleClear = () => {
-    inputRef.current.clear();
+    inputRef?.current?.clear();
+    setSearchTerm("");
   };
 
   return (
@@ -42,7 +52,7 @@ const MyComponent = ({ data }) => {
         <Text>Clear</Text>
       </TouchableOpacity>
       <FlatList
-        data={dataSource}
+        data={filteredData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => handleSelect(item)}>
